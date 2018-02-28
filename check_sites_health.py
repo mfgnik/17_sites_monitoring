@@ -14,6 +14,13 @@ def get_argv():
         default='domain_list',
         help='path to the file containing url sites',
     )
+    parser.add_argument(
+        '--paiddays',
+        '-p',
+        default=28,
+        type=int,
+        help='paid days'
+    )
     return parser.parse_args()
 
 
@@ -26,40 +33,42 @@ def load_urls4check(file_path):
 
 
 def is_server_respond_with_200(url):
-    if requests.get('http://www.{}'.format(url)).ok:
-        return '200 ОК'
+    if requests.get(url).status_code == 200:
+        return True
 
 
-def get_domain_expiration_date(domain_name):
-    data_now = datetime.datetime.now()
+def get_domain_expiration_date(url):
+    date_now = datetime.datetime.now()
     try:
-        domain_inf = whois.whois(domain_name)
-        expiration_date = domain_inf.expiration_date
-        if type(domain_inf.expiration_date) is list:
-            expiration_date = domain_inf.expiration_date[0]
-        elif domain_inf.expiration_date is None:
-            return 'No data'
-        expiration_numbers_days = (expiration_date - data_now).days
-        return expiration_numbers_days
+        domain_info = whois.whois(url)
+        expiration_date = domain_info.expiration_date
+        if type(domain_info.expiration_date) is list:
+            expiration_date = domain_info.expiration_date[0]
+        elif domain_info.expiration_date is None:
+            return None
+        paid_days = (expiration_date - date_now).days
+        return paid_days
     except whois.parser.PywhoisError:
-        return 'No data'
+        return None
 
 
-def print_domain_inf(url):
-    print(url, ':')
-    server_respond_with_200 = 'OK'
-    if is_server_respond_with_200(url) is None:
-        server_respond_with_200 = 'Fall'
-    print('\t\t\t\tserver respond with status 200 - {}'.format(server_respond_with_200))
-    domain_expiration_date = get_domain_expiration_date(url)
-    print('\t\t\t\tthe domain name of the site is paid for {} days'.format(domain_expiration_date))
+def check_site_status(url, paid_days):
+    if is_server_respond_with_200(url):
+        expiration_date = get_domain_expiration_date(url)
+        if expiration_date > paid_days:
+            return True
 
 
 if __name__ == '__main__':
-    path_file = get_argv()
-    domain_list = load_urls4check(path_file.file)
+    argv = get_argv()
+    paid_days = get_argv().paiddays
+    domain_list = load_urls4check(argv.file)
     if domain_list:
-        for domain_url in domain_list:
-            print_domain_inf(domain_url)
+        print('Check the status of the site from {}'.format(argv.file))
+        for url in domain_list:
+            if check_site_status(url, paid_days):
+                print('{} - OK'.format(url))
+            else:
+                print('{} - HAS PROBLEMS'.format(url))
     else:
         print('File not found')
