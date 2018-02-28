@@ -33,7 +33,7 @@ def load_urls4check(file_path):
 
 
 def is_server_respond_with_200(url):
-    if requests.get(url).status_code == 200:
+    if requests.get(url).ok:
         return True
 
 
