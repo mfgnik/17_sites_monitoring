@@ -32,31 +32,43 @@ def load_urls4check(file_path):
         return None
 
 
-def is_server_respond_with_200(url):
-    if requests.get(url).ok:
-        return True
-
-
-def get_domain_expiration_date(url):
-    date_now = datetime.datetime.now()
+def is_server_respond_with_ok(url):
     try:
-        domain_info = whois.whois(url)
-        expiration_date = domain_info.expiration_date
-        if type(domain_info.expiration_date) is list:
-            expiration_date = domain_info.expiration_date[0]
-        elif domain_info.expiration_date is None:
-            return None
-        paid_days = (expiration_date - date_now).days
-        return paid_days
-    except whois.parser.PywhoisError:
+        return requests.get(url).ok
+    except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
         return None
 
 
+def is_payment_expire(url, paid_days):
+    date_now = datetime.datetime.now()
+    try:
+        domain_info = whois.whois(url)
+    except whois.parser.PywhoisError:
+        return None
+    expiration_date = domain_info.expiration_date
+    if type(domain_info.expiration_date) is list:
+        expiration_date = domain_info.expiration_date[0]
+    elif domain_info.expiration_date is None:
+        return 'No data'
+    return (expiration_date - date_now).days > paid_days
+
+
 def check_site_status(url, paid_days):
-    if is_server_respond_with_200(url):
-        expiration_date = get_domain_expiration_date(url)
-        if expiration_date > paid_days:
-            return True
+    site_status = {}
+    if is_server_respond_with_ok(url):
+        site_status.update({'respond': 'OK'})
+    else:
+        site_status.update({'respond': 'NO CONNECT'})
+    payment_expire = is_payment_expire(url, paid_days)
+    if payment_expire == 'No data':
+        site_status.update({'payment': 'NO DATA'})
+    elif payment_expire is None:
+        site_status.update({'payment': 'NO CONNECT'})
+    elif not payment_expire:
+        site_status.update({'payment': 'NO PAY'})
+    else:
+        site_status.update({'payment': 'OK'})
+    return site_status
 
 
 if __name__ == '__main__':
@@ -64,11 +76,14 @@ if __name__ == '__main__':
     paid_days = get_argv().paiddays
     domain_list = load_urls4check(argv.file)
     if domain_list:
-        print('Check the status of the site from {}'.format(argv.file))
+        print('\nCheck the status of the site from {}'.format(argv.file))
         for url in domain_list:
-            if check_site_status(url, paid_days):
-                print('{} - OK'.format(url))
-            else:
-                print('{} - HAS PROBLEMS'.format(url))
+            site_status = check_site_status(url, paid_days)
+            print(url)
+            print ('Respond status - {}'.format(site_status['respond']))
+            print('Paid period more than {} days : {}'.format(
+                paid_days, site_status['payment']
+            ))
+            print('----------------------------------------------------------')
     else:
         print('File not found')

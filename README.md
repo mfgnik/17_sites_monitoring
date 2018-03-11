@@ -20,11 +20,16 @@ An example of running a script in Linux, Python 3.5:
 
 ```bash
 $ python3 check_sites_health.py -f domain_list -p 28
-Check the status of our sites 
-http://www.google.com - OK
-http://www.wikipedia.org - OK
-http://www.devman.org - OK
-http://www.pythonforbeginners.com - OK
+
+Check the status of the site from domain_list
+https://wikipedia.org
+Respond status - OK
+Paid period more than 28 days : OK
+--------------------------------------------------------------------------
+https://wikipcwioncebvuibnvjib2qinkoscjiqedia.org
+Respond status - NO CONNECT
+Paid period more than 28 days : NO DATA
+--------------------------------------------------------------------------
 ```
 Used arguments:
 ```bash
