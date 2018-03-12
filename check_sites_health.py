@@ -39,19 +39,19 @@ def is_server_respond_with_ok(domain):
         return None
 
 
-def is_payment_expire(domain, paid_days):
+def is_domain_extended(domain, number_days):
     date_now = datetime.datetime.now()
     try:
         domain_info = whois.whois(domain)
     except whois.parser.PywhoisError:
         return None
     expiration_date = domain_info.expiration_date
-    if type(domain_info.expiration_date) is list:
+    if isinstance(domain_info.expiration_date, list):
         expiration_date = domain_info.expiration_date[0]
     elif domain_info.expiration_date is None:
         return None
-    return (expiration_date - date_now).days > paid_days
-1
+    return (expiration_date - date_now).days > number_days
+
 
 def check_site_status(domain, paid_days):
     site_status = {}
@@ -59,13 +59,13 @@ def check_site_status(domain, paid_days):
         site_status.update({'respond': 'OK'})
     else:
         site_status.update({'respond': 'NO CONNECT'})
-    payment_expire = is_payment_expire(domain, paid_days)
-    if payment_expire is None:
-        site_status.update({'payment': 'NO DATA'})
-    elif not payment_expire:
-        site_status.update({'payment': 'NO PAY'})
+    domain_extended = is_domain_extended(domain, paid_days)
+    if domain_extended is None:
+        site_status.update({'domain_extended': 'NO DATA'})
+    elif not domain_extended:
+        site_status.update({'domain_extended': 'NOT EXTENDED'})
     else:
-        site_status.update({'payment': 'OK'})
+        site_status.update({'domain_extended': 'OK'})
     return site_status
 
 
@@ -79,8 +79,8 @@ if __name__ == '__main__':
             site_status = check_site_status(domain, paid_days)
             print(domain)
             print ('Respond status - {}'.format(site_status['respond']))
-            print('Paid period more than {} days : {}'.format(
-                paid_days, site_status['payment']
+            print('Domain extended  more than {} days : {}'.format(
+                paid_days, site_status['domain_extended']
             ))
             print('-'*80)
     else:
