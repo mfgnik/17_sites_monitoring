@@ -12,14 +12,14 @@ def get_args():
         '--file',
         '-f',
         default='domain_list',
-        help='path to the file containing domain sites',
+        help='path to the file containing domain sites'
     )
     parser.add_argument(
-        '--paiddays',
-        '-p',
+        '--days',
+        '-d',
         default=28,
         type=int,
-        help='paid days'
+        help='number of days before the end of domain registration'
     )
     return parser.parse_args()
 
@@ -29,7 +29,8 @@ def load_domain4check(file_path):
         with open(file_path, 'r', encoding='utf-8') as file:
             return file.read().split('\n')
     except FileNotFoundError:
-        return None
+        print('File not found!')
+        exit()
 
 
 def is_server_respond_with_ok(domain):
@@ -39,7 +40,7 @@ def is_server_respond_with_ok(domain):
         return None
 
 
-def is_domain_extended(domain, number_days):
+def is_domain_expired(domain, number_days):
     date_now = datetime.datetime.now()
     try:
         domain_info = whois.whois(domain)
@@ -53,13 +54,13 @@ def is_domain_extended(domain, number_days):
     return (expiration_date - date_now).days > number_days
 
 
-def check_site_status(domain, paid_days):
+def check_site_status(domain, number_days):
     site_status = {}
     if is_server_respond_with_ok(domain):
         site_status.update({'respond': 'OK'})
     else:
         site_status.update({'respond': 'NO CONNECT'})
-    domain_extended = is_domain_extended(domain, paid_days)
+    domain_extended = is_domain_expired(domain, number_days)
     if domain_extended is None:
         site_status.update({'domain_extended': 'NO DATA'})
     elif not domain_extended:
@@ -71,17 +72,14 @@ def check_site_status(domain, paid_days):
 
 if __name__ == '__main__':
     args = get_args()
-    paid_days = get_args().paiddays
+    number_days = get_args().days
     domain_list = load_domain4check(args.file)
-    if domain_list:
-        print('\nCheck the status of the site from {}'.format(args.file))
-        for domain in domain_list:
-            site_status = check_site_status(domain, paid_days)
-            print(domain)
-            print ('Respond status - {}'.format(site_status['respond']))
-            print('Domain extended  more than {} days : {}'.format(
-                paid_days, site_status['domain_extended']
+    print('\nCheck the status of the site from {}'.format(args.file))
+    for domain in domain_list:
+        site_status = check_site_status(domain, number_days)
+        print(domain)
+        print ('Respond status - {}'.format(site_status['respond']))
+        print('Domain extended  more than {} days : {}'.format(
+            number_days, site_status['domain_extended']
             ))
-            print('-'*80)
-    else:
-        print('File not found')
+        print('-'*80)
