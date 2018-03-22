@@ -16,7 +16,7 @@ def get_domain_name(url):
 
 
 def is_server_respond_with_200(url):
-    return requests.get(url).status_code == 200
+    return requests.get(url).ok
 
 
 def get_domain_expiration_date(domain_name):
@@ -29,27 +29,31 @@ def month_remained(expiration_date):
     return delta.days > month
 
 
-def get_info_about_site(url):
+def get_info_about_http(url):
     try:
-        print(50 * '-')
         print('Server name: {}'.format(url))
         if is_server_respond_with_200(url):
             print('Server responds with status HTTP 200')
         else:
             print('Server does not respond with status HTTP 200')
-    except Exception as e:
+    except requests.RequestException as e:
         print('Exception with HTTP status is: {}'.format(e))
+
+
+def get_info_about_expiration_date(url):
     try:
         expiration_date = get_domain_expiration_date(get_domain_name(url))
         if month_remained(expiration_date):
             print('Server does not expire in month')
         else:
             print('Server expires in month')
-    except Exception as e:
-        print('Exception with expire time is: {}'.format(e))
+    except TypeError:
+        print('Can not get expiration date')
 
 
 if __name__ == '__main__':
     urls_file = sys.argv[1]
     for url in load_urls4check(urls_file):
-        get_info_about_site(url)
+        print(50 * '-')
+        get_info_about_http(url)
+        get_info_about_expiration_date(url)
