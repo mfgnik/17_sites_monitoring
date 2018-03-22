@@ -8,7 +8,7 @@ import sys
 def load_urls4check(path_to_file):
     with open(path_to_file, 'r') as urls_file:
         for line in urls_file:
-            yield line[:-1]
+            yield line.rstrip()
 
 
 def get_domain_name(url):
