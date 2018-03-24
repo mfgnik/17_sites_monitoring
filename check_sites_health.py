@@ -29,26 +29,26 @@ def is_enough_days_remained(expiration_date, days=30):
     return delta.days > days
 
 
-def print_info_about_http_status(url):
+def get_info_about_http_status(url):
     try:
         print('Server name: {}'.format(url))
         if is_server_respond_with_ok(url):
-            print('Server responds')
+            return 'Server responds'
         else:
-            print('Server does not respond with status HTTP 200')
+            return 'Server does not respond with status HTTP 200'
     except requests.RequestException as e:
-        print('Exception with HTTP status is: {}'.format(e))
+        return 'Exception with HTTP status is: {}'.format(e)
 
 
-def print_info_about_expiration_date(url, days=30):
+def get_info_about_expiration_date(url, days=30):
     try:
         expiration_date = get_domain_expiration_date(get_domain_name(url))
         if is_enough_days_remained(expiration_date, days):
-            print('Server does not expire in {} days'.format(days))
+            return 'Server does not expire in {} days'.format(days)
         else:
-            print('Server expires in {} days'.format(days))
+            return 'Server expires in {} days'.format(days)
     except TypeError:
-        print('Can not get expiration date')
+        return 'Can not get expiration date'
 
 
 if __name__ == '__main__':
@@ -61,5 +61,5 @@ if __name__ == '__main__':
         days = 30
     for url in load_urls4check(urls_file):
         print(50 * '-')
-        print_info_about_http_status(url)
-        print_info_about_expiration_date(url, days)
+        print(get_info_about_http_status(url))
+        print(get_info_about_expiration_date(url, days))
