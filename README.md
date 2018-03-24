@@ -15,28 +15,31 @@ pip install requirements.txt
 # Quick start
 
 ```bash
-python sites_monitoring.py urls.txt
+python sites_monitoring.py urls.txt 100
 --------------------------------------------------
 Server name: http://pep8online.com
-Server responds with status HTTP 200
-Server does not expire in month
+Server responds
+Server does not expire in 100 days
 --------------------------------------------------
 Server name: https://www.avito.ru/
-Server responds with status HTTP 200
-Server does not expire in month
+Server responds
+Server expires in 100 days
 --------------------------------------------------
 Server name: https://www.sports.ru/
-Server responds with status HTTP 200
-Server does not expire in month
+Server responds
+Server expires in 100 days
 --------------------------------------------------
 Server name: https://habrahabr.ru/
-Server responds with status HTTP 200
-Server does not expire in month
+Server responds
+Server does not expire in 100 days
 --------------------------------------------------
 Server name: https://www.km20.ru/
-Server responds with status HTTP 200
-Server does not expire in month
-MBP-Mikhail:Devman mikhail$ 
+Server responds
+Server does not expire in 100 days
+--------------------------------------------------
+Server name: https://github.com/
+Server responds
+Can not get expiration date
 ```
 
 # Project Goals
