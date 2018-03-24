@@ -1,85 +1,65 @@
 import requests
 import whois
 import datetime
-import argparse
+from urllib.parse import urlparse
+import sys
+import os
 
 
-def get_args():
-    parser = argparse.ArgumentParser(
-        description='Utility for checking the status of sites'
-    )
-    parser.add_argument(
-        '--file',
-        '-f',
-        default='domain_list',
-        help='path to the file containing domain sites'
-    )
-    parser.add_argument(
-        '--days',
-        '-d',
-        default=28,
-        type=int,
-        help='number of days before the end of domain registration'
-    )
-    return parser.parse_args()
+def load_urls4check(path_to_file):
+    with open(path_to_file, 'r') as urls_file:
+        for line in urls_file:
+            yield line.rstrip()
 
 
-def load_domain4check(file_path):
+def get_domain_name(url):
+    return urlparse(url).netloc
+
+
+def is_server_respond_with_ok(url):
+    return requests.get(url).ok
+
+
+def get_domain_expiration_date(domain_name):
+    return whois.whois(domain_name)['expiration_date']
+
+
+def is_enough_days_remained(expiration_date, days=30):
+    delta = expiration_date - datetime.datetime.now()
+    return delta.days > days
+
+
+def print_info_about_http_status(url):
     try:
-        with open(file_path, 'r', encoding='utf-8') as file:
-            return file.read().split('\n')
-    except FileNotFoundError:
-        print('File not found!')
-        exit()
+        print('Server name: {}'.format(url))
+        if is_server_respond_with_ok(url):
+            print('Server responds')
+        else:
+            print('Server does not respond with status HTTP 200')
+    except requests.RequestException as e:
+        print('Exception with HTTP status is: {}'.format(e))
 
 
-def is_server_respond_with_ok(domain):
+def print_info_about_expiration_date(url, days=30):
     try:
-        return requests.get(domain).ok
-    except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
-        return None
-
-
-def is_domain_expired(domain, number_days):
-    date_now = datetime.datetime.now()
-    try:
-        domain_info = whois.whois(domain)
-    except whois.parser.PywhoisError:
-        return None
-    expiration_date = domain_info.expiration_date
-    if isinstance(domain_info.expiration_date, list):
-        expiration_date = domain_info.expiration_date[0]
-    elif domain_info.expiration_date is None:
-        return None
-    return (expiration_date - date_now).days > number_days
-
-
-def check_site_status(domain, number_days):
-    site_status = {}
-    if is_server_respond_with_ok(domain):
-        site_status.update({'respond': 'OK'})
-    else:
-        site_status.update({'respond': 'NO CONNECT'})
-    domain_extended = is_domain_expired(domain, number_days)
-    if domain_extended is None:
-        site_status.update({'domain_extended': 'NO DATA'})
-    elif not domain_extended:
-        site_status.update({'domain_extended': 'NOT EXTENDED'})
-    else:
-        site_status.update({'domain_extended': 'OK'})
-    return site_status
+        expiration_date = get_domain_expiration_date(get_domain_name(url))
+        if is_enough_days_remained(expiration_date, days):
+            print('Server does not expire in {} days'.format(days))
+        else:
+            print('Server expires in {} days'.format(days))
+    except TypeError:
+        print('Can not get expiration date')
 
 
 if __name__ == '__main__':
-    args = get_args()
-    number_days = get_args().days
-    domain_list = load_domain4check(args.file)
-    print('\nCheck the status of the site from {}'.format(args.file))
-    for domain in domain_list:
-        site_status = check_site_status(domain, number_days)
-        print(domain)
-        print ('Respond status - {}'.format(site_status['respond']))
-        print('Domain extended  more than {} days : {}'.format(
-            number_days, site_status['domain_extended']
-            ))
-        print('-'*80)
+    if len(sys.argv) == 1 or not os.path.isfile(sys.argv[1]):
+        sys.exit('Problems with file')
+    urls_file = sys.argv[1]
+    if len(sys.argv) > 2:
+        days = int(sys.argv[2])
+    else:
+        days = 30
+    for url in load_urls4check(urls_file):
+        print(50 * '-')
+        print_info_about_http_status(url)
+        print_info_about_expiration_date(url, days)
