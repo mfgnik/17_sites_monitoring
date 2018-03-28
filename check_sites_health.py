@@ -60,8 +60,8 @@ def get_info_about_site(url, days):
     except requests.RequestException as e:
         server_respond_info = 'Exception with HTTP status is: {}'.format(e)
     expiration_date = get_domain_expiration_date(get_domain_name(url))
-    expiration_date_info = 'Server expires in {} days: {}'.format(
-        days, not is_enough_days_remained(expiration_date, days))
+    expiration_date_info = 'Server does not expire in {} days: {}'.format(
+        days, is_enough_days_remained(expiration_date, days))
     return server_name, server_respond_info, expiration_date_info
 
 
