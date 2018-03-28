@@ -15,30 +15,40 @@ pip install requirements.txt
 # Quick start
 
 ```bash
-python sites_monitoring.py urls.txt 100
+python sites_monitoring.py -h
+usage: sites_monitoring.py [-h] --input_path INPUT_PATH [--days DAYS]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --input_path INPUT_PATH
+                        path to the file with urls
+  --days DAYS           amount of days to check
+ ```
+ ```bash
+python sites_monitoring.py --input_path urls.txt --days 100
 --------------------------------------------------
 Server name: http://pep8online.com
-Server responds
+Server responds with ok
 Server does not expire in 100 days
 --------------------------------------------------
 Server name: https://www.avito.ru/
-Server responds
+Server responds with ok
 Server expires in 100 days
 --------------------------------------------------
 Server name: https://www.sports.ru/
-Server responds
+Server responds with ok
 Server expires in 100 days
 --------------------------------------------------
 Server name: https://habrahabr.ru/
-Server responds
+Server responds with ok
 Server does not expire in 100 days
 --------------------------------------------------
 Server name: https://www.km20.ru/
-Server responds
+Server responds with ok
 Server does not expire in 100 days
 --------------------------------------------------
 Server name: https://github.com/
-Server responds
+Server responds with ok
 Can not get expiration date
 ```
 
