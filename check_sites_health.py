@@ -52,20 +52,17 @@ def is_enough_days_remained(expiration_date, days=30):
 
 
 def get_info_about_site(url, days):
+    server_name = 'Server name: {}'.format(url)
     try:
-        print('Server name: {}'.format(url))
-        if is_server_respond_with_ok(url):
-            is_server_responds = 'Server responds with ok'
-        else:
-            is_server_responds = 'Server does not respond with ok'
+        server_respond_info = 'Server responds with ok: {}'.format(
+            is_server_respond_with_ok(url)
+        )
     except requests.RequestException as e:
-        is_server_responds = 'Exception with HTTP status is: {}'.format(e)
+        server_respond_info = 'Exception with HTTP status is: {}'.format(e)
     expiration_date = get_domain_expiration_date(get_domain_name(url))
-    if is_enough_days_remained(expiration_date, days):
-        date_info = 'Server does not expire in {} days'.format(days)
-    else:
-        date_info = 'Server expires in {} days'.format(days)
-    return is_server_responds, date_info
+    expiration_date_info = 'Server does not expire in {} days: {}'.format(
+        days, not is_enough_days_remained(expiration_date, days))
+    return server_name, server_respond_info, expiration_date_info
 
 
 if __name__ == '__main__':
